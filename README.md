@@ -1,8 +1,8 @@
 # **Better Friend Reminders**
 
-> Link to [FrontEnd]()
+> Link to [Landing Page]()
 
-> Link to [backend]()
+> Link to [backend API]()
 
 ## What is it?
 

@@ -14,4 +14,8 @@ server.use(cors());
 
 server.use(authRouter);
 
+server.get("/", (req, res) => {
+  res.json("Welcome to the Best Friend Reminders API");
+});
+
 module.exports = server;

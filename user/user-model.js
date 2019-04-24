@@ -6,7 +6,7 @@ module.exports = {
 };
 
 async function add(user) {
-  const [id] = await db("users").insert(user);
+  const [id] = await db("users").insert(user, "id");
   return id;
 }
 

@@ -4,7 +4,8 @@ module.exports = {
   add,
   getAll,
   remove,
-  update
+  update,
+  getById
 };
 
 async function add(reminder) {
@@ -13,17 +14,23 @@ async function add(reminder) {
 }
 
 function getAll(user_id) {
-  return db("reminders").where({ user_id: user_id });
+  return db("reminders").where({ user_id: Number(user_id) });
 }
 
 function remove(id, user_id) {
   return db("reminders")
-    .where({ id: id, user_id: user_id })
+    .where({ id: Number(id), user_id: Number(user_id) })
     .del();
 }
 
 function update(id, user_id, reminder) {
   return db("reminders")
-    .where({ id: id, user_id: user_id })
+    .where({ id: Number(id), user_id: Number(user_id) })
     .update(reminder);
+}
+
+function getById(id, user_id) {
+  return db("reminders")
+    .where({ id: Number(id), user_id: Number(user_id) })
+    .first();
 }

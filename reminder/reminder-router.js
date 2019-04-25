@@ -29,14 +29,15 @@ router.post("/", restrict, async (req, res) => {
       errorMessage:
         "Please provide all the required information: recipient name, recipient email, message, category, and the send date"
     });
-  }
-  try {
-    reminder.sent = false;
-    reminder.user_id = userId;
-    const reminderId = await Reminder.add(reminder);
-    res.status(201).json(reminderId);
-  } catch (err) {
-    res.status(500).json({ errorMessage: "There was an error adding the reminder to the database" });
+  } else {
+    try {
+      reminder.sent = false;
+      reminder.user_id = userId;
+      const reminderId = await Reminder.add(reminder);
+      res.status(201).json(reminderId);
+    } catch (err) {
+      res.status(500).json({ errorMessage: "There was an error adding the reminder to the database" });
+    }
   }
 });
 
@@ -55,6 +56,31 @@ router.delete("/:id", restrict, async (req, res) => {
     }
   } catch (err) {
     res.status(500).json({ errorMessage: "There was an error removing the reminder from the database" });
+  }
+});
+
+router.put("/:id", restrict, async (req, res) => {
+  const reminderId = req.params.id;
+  const userId = req.userInfo.subject;
+  const reminderInfo = req.body;
+  if (!reminderInfo || Object.keys(reminderInfo).length === 0) {
+    res.status(400).json({
+      errorMessage: "Please provide the information to be updated"
+    });
+  } else {
+    try {
+      const count = await Reminder.update(reminderId, userId, reminderInfo);
+      if (count === 0) {
+        res.status(400).json({
+          count: count,
+          message: "Please provide a valid reminder id and information"
+        });
+      } else {
+        res.status(200).json({ count: count, message: "The reminder has been updated" });
+      }
+    } catch (err) {
+      res.status(500).json({ errorMessage: "There was an error removing the reminder from the database" });
+    }
   }
 });
 

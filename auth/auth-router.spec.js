@@ -8,7 +8,7 @@ beforeEach(async () => {
   await db("users").truncate(); // reset the database before test
 });
 
-describe("server.js", () => {
+describe("auth-router.js", () => {
   it("should set testing environment", () => {
     expect(process.env.DB_ENV).toBe("testing");
   });
@@ -65,7 +65,7 @@ describe("POST /api/login", () => {
     });
   });
 
-  it("should return status 200 if username or password are invalid", async () => {
+  it("should return status 200 if username and password are valid", async () => {
     // Add a user to the database so we can login
     const newUser = { username: "Leila", password: "password" };
     const hash = bcrypt.hashSync(newUser.password, 10); //2 ^ n times

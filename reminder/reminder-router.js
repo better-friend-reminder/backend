@@ -84,4 +84,21 @@ router.put("/:id", restrict, async (req, res) => {
   }
 });
 
+router.get("/:id", restrict, async (req, res) => {
+  const reminderId = req.params.id;
+  const userId = req.userInfo.subject;
+  try {
+    const id = await Reminder.getById(reminderId, userId);
+    if (!id) {
+      res.status(400).json({
+        message: "Please provide a valid reminder id."
+      });
+    } else {
+      res.status(200).json(id);
+    }
+  } catch (err) {
+    res.status(500).json({ errorMessage: "There was an error fetching the reminder from the database" });
+  }
+});
+
 module.exports = router;

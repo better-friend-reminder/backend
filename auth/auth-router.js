@@ -29,7 +29,6 @@ router.post("/api/register", (req, res) => {
         res.status(201).json({ userId: userId, token: token });
       })
       .catch(error => {
-        console.log(error);
         res.status(500).json({
           errorMessage: "There was an error saving the new user to the database"
         });
@@ -57,7 +56,6 @@ router.post("/api/login", (req, res) => {
         }
       })
       .catch(error => {
-        console.log(err);
         res.status(500).json({
           errorMessage: "There was an error logging user"
         });

@@ -208,4 +208,57 @@ describe("reminder-router.js", () => {
       expect(res.body.count).toBe(1);
     });
   });
+
+  describe("GET /:id", () => {
+    it("should return status 401 if user not logged in", async () => {
+      const res = await request(server).get("/api/reminders/11");
+      expect(res.status).toBe(401);
+      expect(res.body).toEqual({
+        errorMessage: "You have to login first."
+      });
+    });
+
+    it("should return status 400 if reminder id is not valid", async () => {
+      const user = { username: "Leila6", password: "password" };
+      const hash = bcrypt.hashSync(user.password, 10); //2 ^ n times
+      //override use.password with hash
+      user.password = hash;
+      const response = await request(server)
+        .post("/api/register")
+        .send(user);
+      const token = response.body.token;
+
+      const res = await request(server)
+        .get("/api/reminders/10")
+        .set({ authorization: token });
+      expect(res.status).toBe(400);
+    });
+
+    it("should return a status 200 if reminder with the id is found", async () => {
+      const user = { username: "Leila7", password: "password" };
+      const hash = bcrypt.hashSync(user.password, 10); //2 ^ n times
+      //override use.password with hash
+      user.password = hash;
+      const response = await request(server)
+        .post("/api/register")
+        .send(user);
+      const token = response.body.token;
+
+      const reminder = {
+        user_id: response.body.userId,
+        recipientName: "Mama",
+        recipientEmail: "mama@mama.com",
+        message: "Hello Mama From API",
+        category: "family",
+        sent: false,
+        sendDate: 1556139895242
+      };
+      const reminderId = await db("reminders").insert(reminder);
+
+      const res = await request(server)
+        .get(`/api/reminders/${reminderId}`)
+        .set({ authorization: token });
+      expect(res.status).toBe(200);
+    });
+  });
 });

@@ -38,10 +38,14 @@ router.post("/", restrict, async (req, res) => {
 
       // add scheduler to send email at specified date
       // replace this date with reminder.sendDate
-      const date = new Date(2019, 3, 25, 17, 47, 00);
-
-      scheduler.scheduleJob(reminderId.toString(), date, function() {
+      const date = new Date(2019, 3, 25, 18, 04, 00);
+      scheduler.scheduleJob(reminderId.toString(), date, async function() {
         console.log("this should be an email send to " + reminder.recipientName + " with message " + reminder.message);
+        try {
+          await Reminder.update(reminderId, userId, { sent: true });
+        } catch (err) {
+          console.log(err);
+        }
       });
 
       res.status(201).json(reminderId);

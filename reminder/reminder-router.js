@@ -88,13 +88,13 @@ router.get("/:id", restrict, async (req, res) => {
   const reminderId = req.params.id;
   const userId = req.userInfo.subject;
   try {
-    const id = await Reminder.getById(reminderId, userId);
-    if (!id) {
+    const reminder = await Reminder.getById(reminderId, userId);
+    if (!reminder) {
       res.status(400).json({
         message: "Please provide a valid reminder id."
       });
     } else {
-      res.status(200).json(id);
+      res.status(200).json(reminder);
     }
   } catch (err) {
     res.status(500).json({ errorMessage: "There was an error fetching the reminder from the database" });

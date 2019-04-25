@@ -19,12 +19,13 @@ router.post("/api/register", (req, res) => {
     //override use.password with hash
     user.password = hash;
 
-    //Create token with user info - Login the user when registering
-    const token = generateToken(user);
-
     // Add user to database and send back response, with token info
     Users.add(user)
       .then(userId => {
+        user.id = userId;
+        //Create token with user info - Login the user when registering
+        const token = generateToken(user);
+
         res.status(201).json({ userId: userId, token: token });
       })
       .catch(error => {

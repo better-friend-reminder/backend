@@ -1,4 +1,5 @@
 const express = require("express");
+const scheduler = require("node-schedule");
 
 const restrict = require("../util/tokenHelpers").restrict;
 const Reminder = require("./reminder-model");
@@ -34,6 +35,15 @@ router.post("/", restrict, async (req, res) => {
       reminder.sent = false;
       reminder.user_id = userId;
       const reminderId = await Reminder.add(reminder);
+
+      // add scheduler to send email at specified date
+      // replace this date with reminder.sendDate
+      const date = new Date(2019, 3, 25, 17, 47, 00);
+
+      scheduler.scheduleJob(reminderId.toString(), date, function() {
+        console.log("this should be an email send to " + reminder.recipientName + " with message " + reminder.message);
+      });
+
       res.status(201).json(reminderId);
     } catch (err) {
       res.status(500).json({ errorMessage: "There was an error adding the reminder to the database" });
@@ -52,6 +62,12 @@ router.delete("/:id", restrict, async (req, res) => {
         message: "Please provide a valid reminder id"
       });
     } else {
+      // cancel the scheduler
+      const scheduled = scheduler.scheduledJobs[reminderId.toString()];
+      if (scheduled) {
+        scheduled.cancel();
+      }
+
       res.status(200).json({ count: count, message: "The reminder has been deleted" });
     }
   } catch (err) {

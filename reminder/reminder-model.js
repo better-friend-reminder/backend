@@ -5,8 +5,8 @@ module.exports = {
   getAll
 };
 
-async function add(user) {
-  const [id] = await db("reminders").insert(user, "id");
+async function add(reminder) {
+  const [id] = await db("reminders").insert(reminder, "id");
   return id;
 }
 

@@ -36,7 +36,25 @@ router.post("/", restrict, async (req, res) => {
     const reminderId = await Reminder.add(reminder);
     res.status(201).json(reminderId);
   } catch (err) {
-    res.status(500).json({ errorMessage: "There was an error adding the reminders to the database" });
+    res.status(500).json({ errorMessage: "There was an error adding the reminder to the database" });
+  }
+});
+
+router.delete("/:id", restrict, async (req, res) => {
+  const reminderId = req.params.id;
+  const userId = req.userInfo.subject;
+  try {
+    const count = await Reminder.remove(reminderId, userId);
+    if (count === 0) {
+      res.status(400).json({
+        count: count,
+        message: "Please provide a valid reminder id"
+      });
+    } else {
+      res.status(200).json({ count: count, message: "The reminder has been deleted" });
+    }
+  } catch (err) {
+    res.status(500).json({ errorMessage: "There was an error removing the reminder from the database" });
   }
 });
 

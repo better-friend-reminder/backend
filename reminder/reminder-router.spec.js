@@ -66,11 +66,84 @@ describe("reminder-router.js", () => {
         category: "family",
         sendDate: 1556139895242
       };
+
       const res = await request(server)
         .post("/api/reminders")
         .set({ authorization: token })
         .send(reminder);
       expect(res.status).toBe(201);
+    });
+  });
+
+  describe("DELETE /:id", () => {
+    it("should return status 401 if user not logged in", async () => {
+      const res = await request(server).delete("/api/reminders/11");
+      expect(res.status).toBe(401);
+      expect(res.body).toEqual({
+        errorMessage: "You have to login first."
+      });
+    });
+
+    it("If user logged in, should return status 200", async () => {
+      const user = { username: "Leila1", password: "password" };
+      const hash = bcrypt.hashSync(user.password, 10); //2 ^ n times
+      //override use.password with hash
+      user.password = hash;
+      const response = await request(server)
+        .post("/api/register")
+        .send(user);
+      const token = response.body.token;
+
+      // add a reminder
+      const reminder = {
+        user_id: response.body.userId,
+        recipientName: "Papa",
+        recipientEmail: "papa@papa.com",
+        message: "Hello Papa From API",
+        category: "family",
+        sent: false,
+        sendDate: 1556139895242
+      };
+      const reminderId = await db("reminders").insert(reminder);
+
+      // delete the reminder
+      const res = await request(server)
+        .delete(`/api/reminders/${reminderId}`)
+        .set({ authorization: token })
+        .send(reminder);
+      expect(res.status).toBe(200);
+      expect(res.body.count).toBe(1);
+    });
+
+    it("If user logged in, should return status 400 if the reminder id is invalid", async () => {
+      const user = { username: "Leila2", password: "password" };
+      const hash = bcrypt.hashSync(user.password, 10); //2 ^ n times
+      //override use.password with hash
+      user.password = hash;
+      const response = await request(server)
+        .post("/api/register")
+        .send(user);
+      const token = response.body.token;
+
+      // add a reminder
+      const reminder = {
+        user_id: response.body.userId,
+        recipientName: "Papa",
+        recipientEmail: "papa@papa.com",
+        message: "Hello Papa From API",
+        category: "family",
+        sent: false,
+        sendDate: 1556139895242
+      };
+      const reminderId = await db("reminders").insert(reminder);
+
+      // delete the reminder
+      const res = await request(server)
+        .delete(`/api/reminders/100`)
+        .set({ authorization: token })
+        .send(reminder);
+      expect(res.status).toBe(400);
+      expect(res.body.count).toBe(0);
     });
   });
 });

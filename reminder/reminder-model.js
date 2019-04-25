@@ -2,7 +2,8 @@ const db = require("../data/dbConfig.js");
 
 module.exports = {
   add,
-  getAll
+  getAll,
+  remove
 };
 
 async function add(reminder) {
@@ -12,4 +13,10 @@ async function add(reminder) {
 
 function getAll(user_id) {
   return db("reminders").where({ user_id: user_id });
+}
+
+function remove(id, user_id) {
+  return db("reminders")
+    .where({ id: id, user_id: user_id })
+    .del();
 }

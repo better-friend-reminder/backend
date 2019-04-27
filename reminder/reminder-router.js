@@ -1,7 +1,14 @@
+require("dotenv").config();
+
 const express = require("express");
+
+const scheduler = require("node-schedule");
+const nodemailer = require("nodemailer");
+const sendgridTransport = require("nodemailer-sendgrid-transport");
 
 const restrict = require("../util/tokenHelpers").restrict;
 const Reminder = require("./reminder-model");
+const Users = require("../user/user-model");
 
 const router = express.Router();
 
@@ -16,6 +23,14 @@ router.get("/", restrict, async (req, res) => {
 });
 
 router.post("/", restrict, async (req, res) => {
+  const transporter = nodemailer.createTransport(
+    sendgridTransport({
+      auth: {
+        api_key: process.env.API_KEY
+      }
+    })
+  );
+
   const userId = req.userInfo.subject;
   const reminder = req.body;
   if (
@@ -34,6 +49,41 @@ router.post("/", restrict, async (req, res) => {
       reminder.sent = false;
       reminder.user_id = userId;
       const reminderId = await Reminder.add(reminder);
+
+      // add scheduler to send email at specified date
+      const day = reminder.sendDate.split("-");
+      const year = Number(day[0]);
+      const month = Number(day[1]) - 1;
+      const dayNum = Number(day[2]);
+      const date = new Date(year, month, dayNum);
+      try {
+        const user = await Users.findBy({ id: userId }).first();
+        scheduler.scheduleJob(reminderId.toString(), date, async function() {
+          transporter
+            .sendMail({
+              to: reminder.recipientEmail,
+              from: user.email,
+              subject: "You have a message!!",
+              html: `
+                <h1>From ${user.name} </h1>
+                <h2> Hello ${reminder.recipientName}</h2>
+                <p>${reminder.message}</p>`
+            })
+            .then(res => {
+              console.log(res);
+            })
+            .catch(err => {
+              console.log(err);
+            });
+          try {
+            await Reminder.update(reminderId, userId, { sent: true });
+          } catch (err) {
+            console.log(err);
+          }
+        });
+      } catch (err) {
+        console.log("ERROR: ", err);
+      }
       res.status(201).json(reminderId);
     } catch (err) {
       res.status(500).json({ errorMessage: "There was an error adding the reminder to the database" });
@@ -52,6 +102,12 @@ router.delete("/:id", restrict, async (req, res) => {
         message: "Please provide a valid reminder id"
       });
     } else {
+      // cancel the scheduler
+      const scheduled = scheduler.scheduledJobs[reminderId.toString()];
+      if (scheduled) {
+        scheduled.cancel();
+      }
+
       res.status(200).json({ count: count, message: "The reminder has been deleted" });
     }
   } catch (err) {

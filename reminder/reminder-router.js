@@ -60,19 +60,19 @@ router.post("/", restrict, async (req, res) => {
             {
               to: [
                 {
-                  email: "nb.leila10@gmail.com"
+                  email: "nb_leila@yahoo.com"
                 }
               ],
               subject: "Hello World from the SendGrid Node.js Library!"
             }
           ],
           from: {
-            email: "nb_leila@yahoo.com"
+            email: "nb.leila10@gmail.com"
           },
           content: [
             {
               type: "text/plain",
-              value: "Hello, Email!"
+              value: "Hello, from Heroku sendgrid! It's WORKING!!!!!!!!"
             }
           ]
         }

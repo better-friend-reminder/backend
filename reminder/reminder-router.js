@@ -50,24 +50,27 @@ router.post("/", restrict, async (req, res) => {
       reminder.user_id = userId;
       const reminderId = await Reminder.add(reminder);
 
-      // add scheduler to send email at specified date
-      const day = reminder.sendDate.split("-");
-      const year = Number(day[0]);
-      const month = Number(day[1]) - 1;
-      const dayNum = Number(day[2]);
-      const date = new Date(year, month, dayNum);
+      const { recipientName, recipientEmail, message } = reminder;
+      let date = reminder.sendDate;
+      if (typeof date === "number" || typeof date === "string") {
+        date = new Date(date);
+      }
+      const year = date.getUTCFullYear();
+      const month = date.getUTCMonth();
+      const day = date.getUTCDate();
+      const sendDate = new Date(year, month, day, 12, 10, 00);
       try {
         const user = await Users.findBy({ id: userId }).first();
-        scheduler.scheduleJob(reminderId.toString(), date, async function() {
+        scheduler.scheduleJob(reminderId.toString(), sendDate, async function() {
           transporter
             .sendMail({
-              to: reminder.recipientEmail,
+              to: recipientEmail,
               from: user.email,
               subject: "You have a message!!",
               html: `
                 <h1>From ${user.name} </h1>
-                <h2> Hello ${reminder.recipientName}</h2>
-                <p>${reminder.message}</p>`
+                <h2> Hello ${recipientName}</h2>
+                <p>${message}</p>`
             })
             .then(res => {
               console.log(res);
@@ -84,6 +87,7 @@ router.post("/", restrict, async (req, res) => {
       } catch (err) {
         console.log("ERROR: ", err);
       }
+
       res.status(201).json(reminderId);
     } catch (err) {
       res.status(500).json({ errorMessage: "There was an error adding the reminder to the database" });

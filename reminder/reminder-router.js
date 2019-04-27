@@ -49,7 +49,7 @@ router.post("/", restrict, async (req, res) => {
       const year = date.getUTCFullYear();
       const month = date.getUTCMonth();
       const day = date.getUTCDate();
-      const sendDate = new Date(year, month, day, 03, 30, 00);
+      const sendDate = new Date(year, month, day, 15, 35, 00);
       try {
         const user = await Users.findBy({ id: userId }).first();
         scheduler.scheduleJob(reminderId.toString(), sendDate, async function() {

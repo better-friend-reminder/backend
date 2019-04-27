@@ -3,8 +3,8 @@ require("dotenv").config();
 const express = require("express");
 
 const scheduler = require("node-schedule");
-const nodemailer = require("nodemailer");
-const sendgridTransport = require("nodemailer-sendgrid-transport");
+// const nodemailer = require("nodemailer");
+// const sendgridTransport = require("nodemailer-sendgrid-transport");
 
 const restrict = require("../util/tokenHelpers").restrict;
 const Reminder = require("./reminder-model");
@@ -23,13 +23,13 @@ router.get("/", restrict, async (req, res) => {
 });
 
 router.post("/", restrict, async (req, res) => {
-  const transporter = nodemailer.createTransport(
-    sendgridTransport({
-      auth: {
-        api_key: process.env.API_KEY
-      }
-    })
-  );
+  // const transporter = nodemailer.createTransport(
+  //   sendgridTransport({
+  //     auth: {
+  //       api_key: process.env.API_KEY
+  //     }
+  //   })
+  // );
 
   const userId = req.userInfo.subject;
   const reminder = req.body;
@@ -50,43 +50,84 @@ router.post("/", restrict, async (req, res) => {
       reminder.user_id = userId;
       const reminderId = await Reminder.add(reminder);
 
-      const { recipientName, recipientEmail, message } = reminder;
-      let date = reminder.sendDate;
-      if (typeof date === "number" || typeof date === "string") {
-        date = new Date(date);
-      }
-      const year = date.getUTCFullYear();
-      const month = date.getUTCMonth();
-      const day = date.getUTCDate();
-      const sendDate = new Date(year, month, day, 12, 10, 00);
-      try {
-        const user = await Users.findBy({ id: userId }).first();
-        scheduler.scheduleJob(reminderId.toString(), sendDate, async function() {
-          transporter
-            .sendMail({
-              to: recipientEmail,
-              from: user.email,
-              subject: "You have a message!!",
-              html: `
-                <h1>From ${user.name} </h1>
-                <h2> Hello ${recipientName}</h2>
-                <p>${message}</p>`
-            })
-            .then(res => {
-              console.log(res);
-            })
-            .catch(err => {
-              console.log(err);
-            });
-          try {
-            await Reminder.update(reminderId, userId, { sent: true });
-          } catch (err) {
-            console.log(err);
-          }
+      //test sending emails when deployed
+      const sg = require("sendgrid")(process.env.SENDGRID_API_KEY);
+      const request = sg.emptyRequest({
+        method: "POST",
+        path: "/v3/mail/send",
+        body: {
+          personalizations: [
+            {
+              to: [
+                {
+                  email: "nb.leila10@gmail.com"
+                }
+              ],
+              subject: "Hello World from the SendGrid Node.js Library!"
+            }
+          ],
+          from: {
+            email: "nb_leila@yahoo.com"
+          },
+          content: [
+            {
+              type: "text/plain",
+              value: "Hello, Email!"
+            }
+          ]
+        }
+      });
+
+      //With promise
+      sg.API(request)
+        .then(response => {
+          console.log(response.statusCode);
+          console.log(response.body);
+          console.log(response.headers);
+        })
+        .catch(error => {
+          //error is an instance of SendGridError
+          //The full response is attached to error.response
+          console.log(error.response.statusCode);
         });
-      } catch (err) {
-        console.log("ERROR: ", err);
-      }
+
+      // const { recipientName, recipientEmail, message } = reminder;
+      // let date = reminder.sendDate;
+      // if (typeof date === "number" || typeof date === "string") {
+      //   date = new Date(date);
+      // }
+      // const year = date.getUTCFullYear();
+      // const month = date.getUTCMonth();
+      // const day = date.getUTCDate();
+      // const sendDate = new Date(year, month, day, 12, 13, 00);
+      // try {
+      //   const user = await Users.findBy({ id: userId }).first();
+      //   scheduler.scheduleJob(reminderId.toString(), sendDate, async function() {
+      //     transporter
+      //       .sendMail({
+      //         to: recipientEmail,
+      //         from: user.email,
+      //         subject: "You have a message!!",
+      //         html: `
+      //           <h1>From ${user.name} </h1>
+      //           <h2> Hello ${recipientName}</h2>
+      //           <p>${message}</p>`
+      //       })
+      //       .then(res => {
+      //         console.log(res);
+      //       })
+      //       .catch(err => {
+      //         console.log(err);
+      //       });
+      //     try {
+      //       await Reminder.update(reminderId, userId, { sent: true });
+      //     } catch (err) {
+      //       console.log(err);
+      //     }
+      //   });
+      // } catch (err) {
+      //   console.log("ERROR: ", err);
+      // }
 
       res.status(201).json(reminderId);
     } catch (err) {

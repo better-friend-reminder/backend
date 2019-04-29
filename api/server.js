@@ -20,11 +20,4 @@ server.get("/", (req, res) => {
   res.json("Welcome to the Best Friend Reminders API");
 });
 
-// Using Bing in New Relic app
-// Make an http request every 15 minutes so the server in production doesn't go idle
-// const http = require("http");
-// setInterval(function() {
-//   http.get("https://best-friend-reminders.herokuapp.com/");
-// }, 900000); // every 5 minutes (300000)
-
 module.exports = server;

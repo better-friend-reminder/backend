@@ -49,13 +49,12 @@ router.post("/", restrict, async (req, res) => {
       const year = date.getUTCFullYear();
       const month = date.getUTCMonth();
       const day = date.getUTCDate();
-      const sendDate = new Date(year, month, day, 10, 00, 00);
+      const sendDate = new Date(year, month, day, 11, 10, 00);
       try {
         const user = await Users.findBy({ id: userId }).first();
         if (!user.name) user.name = "friend";
         if (!user.email) user.email = "no-email";
         scheduler.scheduleJob(reminderId.toString(), sendDate, async function() {
-          console.log(`Schedule for date: ${sendDate}`);
           const request = sg.emptyRequest({
             method: "POST",
             path: "/v3/mail/send",
@@ -157,7 +156,6 @@ router.put("/:id", restrict, async (req, res) => {
           // get the scheduler
           const scheduled = scheduler.scheduledJobs[reminderId.toString()];
           if (scheduled) {
-            console.log("Got the reminder");
             //cancel the previously scheduled email
             scheduled.cancel();
           }
@@ -169,16 +167,13 @@ router.put("/:id", restrict, async (req, res) => {
           const year = date.getUTCFullYear();
           const month = date.getUTCMonth();
           const day = date.getUTCDate();
-          const sendDate = new Date(year, month, day, 10, 00, 00);
-          console.log("resetting scheduler to date: ", sendDate);
+          const sendDate = new Date(year, month, day, 11, 10, 00);
           try {
             const user = await Users.findBy({ id: userId }).first();
             if (!user.name) user.name = "friend";
             if (!user.email) user.email = "no-email";
             const reminder = await Reminder.getById(reminderId, userId);
             const { recipientEmail, recipientName, message } = reminder;
-            console.log("user: ", user);
-            console.log("reminder: ", reminder);
             scheduler.scheduleJob(reminderId.toString(), sendDate, async function() {
               console.log(`Schedule for date: ${sendDate}`);
               const request = sg.emptyRequest({

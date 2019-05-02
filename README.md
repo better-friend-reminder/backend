@@ -24,6 +24,9 @@
 
 - **Fork** and **Clone** this repository.
 - **CD into the folder** where you cloned the repository.
+- ** Have to setup these environment variables**
+- JWT_SECRET: a secret used to create and verify the authentication token.
+- In production - Have to add the Sendgrid add-on to Heroku
 
 ## API Endpoints
 
@@ -36,13 +39,13 @@
 
 ### REMINDER Endpoints
 
-| Method | Endpoint           | Description                                                                                                         |
-| ------ | ------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| GET    | /api/reminders     | Retrieves a list of all the reminders created by the logged in user.                                                |
-| GET    | /api/reminders/:id | Retrieves a reminder specified by the `id` provided.                                                                |
-| POST   | /api/reminders     | If all required fields (recipient name, recipient email, message, category, send date) are met, creates a reminder. |
-| DELETE | /api/reminders/:id | Deletes the reminder with the specified `id`.                                                                       |
-| PUT    | /api/reminder/:id  | Updates the reminder with the specified `id`.                                                                       |
+| Method | Endpoint           | Description                                                                                                                                                                                 |
+| ------ | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | /api/reminders     | Retrieves a list of all the reminders created by the logged in user.                                                                                                                        |
+| GET    | /api/reminders/:id | Retrieves a reminder specified by the `id` provided.                                                                                                                                        |
+| POST   | /api/reminders     | If all required fields (recipient name, recipient email, message, category, send date) are met, creates a reminder. An email is scheduled to be sent on the sendDate (at 11:10 am central). |
+| DELETE | /api/reminders/:id | Deletes the reminder with the specified `id`. It will also cancel the scheduled email.                                                                                                      |
+| PUT    | /api/reminder/:id  | Updates the reminder with the specified `id`. If the sendDate has been changed, another email will be scheduled, and the previous one canceled.                                             |
 
 ## Data Models
 
@@ -57,3 +60,4 @@
 | message        | String  | The text of the message.                        |
 | category       | String  | The category that the reminder belongs to.      |
 | sendDate       | date    | The date the message is scheduled to be sent.   |
+| sent           | boolean | flag to know if message was sent or not yet.    |
